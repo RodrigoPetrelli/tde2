@@ -1,8 +1,30 @@
 # PedeJá
 
-Backend inicial da plataforma de pedidos de delivery de restaurante **PedeJá** (TDE 2 - Arquitetura de Software em Nuvem).
+Backend da plataforma de pedidos de delivery de restaurante **PedeJá** (TDE 2 - Arquitetura de Software em Nuvem).
 
-> Versão de partida, propositalmente simples: rotas Express com validação, regra de negócio e acesso a dados (arrays em memória) dentro dos próprios handlers.
+> Branch `feature/vertical-slice-clean-architecture`: backend refatorado com IA generativa para **Vertical Slice + Clean Architecture + SOLID**.
+> A versão de partida (rotas Express com toda a regra de negócio nos handlers) está na branch `main`.
+
+## Arquitetura
+
+```
+backend/src/
+  shared/            domain (Entity, AggregateRoot, Money, erros, DomainEvent), application (UseCase, EventBus, IdGenerator),
+                     infrastructure (InMemoryEventBus, CryptoIdGenerator), http (adaptador Express, errorHandler)
+  modules/
+    restaurantes/    domain · application · infrastructure · features/{cadastrar-restaurante, listar-restaurantes, adicionar-produto, listar-cardapio}
+    clientes/        domain · application · infrastructure · features/{cadastrar-cliente}
+    pedidos/         domain (Pedido + eventos) · application/ports (CatalogoGateway, ClienteGateway, RestauranteInfoGateway)
+                     infrastructure (repositório, adaptadores de gateway, NotificacaoRestauranteHandler)
+                     features/{criar-pedido, obter-pedido, listar-pedidos-do-cliente, confirmar-pedido, cancelar-pedido}
+  main/              composition root (container.ts), app.ts, server.ts
+```
+
+- **Vertical Slice:** cada caso de uso é uma pasta em `features/` com DTO/validação, `*UseCase`, `*Controller` e rota.
+- **Clean Architecture:** dependências apontam para o domínio; o Express só aparece em `shared/http` e `main`; só `main/` conhece implementações concretas.
+- **SOLID:** um caso de uso por classe (SRP), reações via handlers de eventos (OCP), fakes e `InMemory*` intercambiáveis (LSP), portas pequenas (ISP) e injeção por construtor (DIP).
+
+Diagramas de classes e componentes (Mermaid + PNG): [`docs/arquitetura/`](docs/arquitetura/).
 
 ## Como rodar
 
@@ -12,7 +34,7 @@ cd backend && npm install && npm run dev
 
 O servidor sobe em `http://localhost:3000` (ou na porta definida em `PORT`).
 
-Outros scripts: `npm run build`, `npm start`, `npm test`.
+Outros scripts: `npm run build`, `npm start`, `npm test` (tudo), `npm run test:unit`, `npm run test:arch` (testes unitários de arquitetura) e `npm run test:integration`.
 
 ## Endpoints
 
