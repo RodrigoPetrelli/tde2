@@ -1,0 +1,41 @@
+---
+title: Grade Vertical Slice x Clean Architecture
+---
+flowchart TB
+  subgraph L1[Adaptadores de interface - rota + Controller]
+    direction LR
+    h1[criar-pedido]:::http
+    h2[cancelar-pedido]:::http
+    h3[cadastrar-cliente]:::http
+    h4[adicionar-produto]:::http
+  end
+  subgraph L2[Casos de uso - features/*/UseCase]
+    direction LR
+    u1[CriarPedidoUseCase]:::uc
+    u2[CancelarPedidoUseCase]:::uc
+    u3[CadastrarClienteUseCase]:::uc
+    u4[AdicionarProdutoUseCase]:::uc
+  end
+  subgraph L3[Portas - interfaces]
+    direction LR
+    p1[PedidoRepository, CatalogoGateway, EventPublisher]:::port
+    p3[ClienteRepository]:::port
+    p4[RestauranteRepository]:::port
+  end
+  subgraph L4[Entidades - domain]
+    direction LR
+    e1[Pedido, ItemPedido]:::ent
+    e3[Cliente]:::ent
+    e4[Restaurante, Produto]:::ent
+  end
+  h1 --> u1 --> p1
+  h2 --> u2 --> p1
+  h3 --> u3 --> p3
+  h4 --> u4 --> p4
+  u1 & u2 --> e1
+  u3 --> e3
+  u4 --> e4
+  classDef http fill:#e3f2fd,stroke:#1565c0
+  classDef uc fill:#e8f5e9,stroke:#2e7d32
+  classDef port fill:#fff8e1,stroke:#f9a825
+  classDef ent fill:#fce4ec,stroke:#ad1457

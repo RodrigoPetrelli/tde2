@@ -1,0 +1,69 @@
+---
+title: Diagrama de classes - shared.application e shared.infrastructure
+config:
+  layout: elk
+---
+classDiagram
+  direction TB
+
+  namespace shared.application {
+    class UseCase~I, O~ {
+      <<interface>>
+      +execute(input I) Promise~O~
+    }
+    class IdGenerator {
+      <<interface>>
+      +gerar() string
+    }
+    class EventHandler~E~ {
+      <<interface>>
+      +handle(evento E) Promise~void~
+    }
+    class EventPublisher {
+      <<interface>>
+      +publicar(eventos DomainEvent[]) Promise~void~
+    }
+    class EventSubscriber {
+      <<interface>>
+      +assinar(nomeEvento string, handler EventHandler) void
+    }
+    class EventBus {
+      <<interface>>
+    }
+    class validacao {
+      <<utility>>
+      +ehObjeto(valor unknown)$ boolean
+      +exigirTextoPreenchido(valor unknown, mensagem string)$ string
+      +exigirTexto(valor unknown, mensagem string)$ string
+      +exigirNumero(valor unknown, mensagem string)$ number
+      +exigirBooleanoOpcional(valor unknown, mensagem string)$ boolean
+    }
+  }
+
+  namespace shared.infrastructure {
+    class CryptoIdGenerator {
+      +gerar() string
+    }
+    class InMemoryEventBus {
+      -handlers: Map~string, EventHandler[]~
+      +assinar(nomeEvento string, handler EventHandler) void
+      +publicar(eventos DomainEvent[]) Promise~void~
+    }
+  }
+
+  namespace shared.domain {
+    class DomainEvent {
+      <<interface>>
+    }
+    class ValidationError
+  }
+
+  CryptoIdGenerator ..|> IdGenerator
+  InMemoryEventBus ..|> EventBus
+  InMemoryEventBus o-- "0..*" EventHandler : handlers
+  EventBus --|> EventPublisher
+  EventBus --|> EventSubscriber
+  EventSubscriber ..> EventHandler
+  EventPublisher ..> DomainEvent
+  EventHandler ..> DomainEvent
+  validacao ..> ValidationError : lanca

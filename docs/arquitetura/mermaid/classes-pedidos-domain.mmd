@@ -1,0 +1,126 @@
+---
+title: Diagrama de classes - modulo pedidos (domain, application e infrastructure)
+config:
+  layout: elk
+---
+classDiagram
+  direction TB
+
+  namespace pedidos.domain {
+    class Pedido {
+      +TAXA_ENTREGA: Money$
+      +clienteId: string
+      +restauranteId: string
+      +itens: ItemPedido[]
+      +taxaEntrega: Money
+      +status: StatusPedido
+      +subtotal: Money
+      +total: Money
+      +criar(props CriarPedidoProps, agora Date)$ Pedido
+      +confirmar(agora Date) void
+      +cancelar(agora Date) void
+    }
+    class ItemPedido {
+      +produtoId: string
+      +nome: string
+      +quantidade: Quantidade
+      +precoUnitario: Money
+      +subtotal: Money
+      +criar(props CriarItemPedidoProps)$ ItemPedido
+    }
+    class Quantidade {
+      +valor: number
+      +criar(valor number)$ Quantidade
+    }
+    class StatusPedido {
+      <<enumeration>>
+      CRIADO
+      CONFIRMADO
+      CANCELADO
+    }
+    class ProdutoDoCatalogo {
+      <<interface>>
+      +id: string
+      +nome: string
+      +precoCentavos: number
+      +disponivel: boolean
+      +pertenceAoRestaurante: boolean
+    }
+    class PedidoRepository {
+      <<interface>>
+      +salvar(pedido Pedido) Promise~void~
+      +buscarPorId(id string) Promise~Pedido~
+      +listarPorCliente(clienteId string) Promise~Pedido[]~
+    }
+    class PedidoCriado
+    class PedidoConfirmado
+    class PedidoCancelado
+  }
+
+  namespace pedidos.application.ports {
+    class CatalogoGateway {
+      <<interface>>
+      +restauranteExiste(restauranteId string) Promise~boolean~
+      +buscarProdutosDoRestaurante(restauranteId string, produtoIds string[]) Promise~ProdutoDoCatalogo[]~
+    }
+    class ClienteGateway {
+      <<interface>>
+      +clienteExiste(clienteId string) Promise~boolean~
+    }
+    class RestauranteInfoGateway {
+      <<interface>>
+      +obterNomeDoRestaurante(restauranteId string) Promise~string~
+    }
+  }
+
+  namespace pedidos.infrastructure {
+    class InMemoryPedidoRepository {
+      -pedidos: Map~string, Pedido~
+    }
+    class CatalogoGatewayAdapter
+    class ClienteGatewayAdapter
+    class NotificacaoRestauranteHandler {
+      +handle(evento PedidoCriado) Promise~void~
+    }
+  }
+
+  namespace shared_e_outros_modulos {
+    class AggregateRoot {
+      <<abstract>>
+      +puxarEventos() DomainEvent[]
+    }
+    class DomainEvent {
+      <<interface>>
+    }
+    class EventHandler~E~ {
+      <<interface>>
+    }
+    class RestauranteRepository {
+      <<interface>>
+    }
+    class ClienteRepository {
+      <<interface>>
+    }
+  }
+
+  Pedido --|> AggregateRoot
+  Pedido "1" *-- "1..*" ItemPedido : itens
+  ItemPedido *-- Quantidade
+  Pedido --> StatusPedido
+  Pedido ..> PedidoCriado : registra
+  Pedido ..> PedidoConfirmado : registra
+  Pedido ..> PedidoCancelado : registra
+  PedidoCriado ..|> DomainEvent
+  PedidoConfirmado ..|> DomainEvent
+  PedidoCancelado ..|> DomainEvent
+  ItemPedido ..> ProdutoDoCatalogo
+  PedidoRepository ..> Pedido
+  CatalogoGateway ..> ProdutoDoCatalogo
+  InMemoryPedidoRepository ..|> PedidoRepository
+  CatalogoGatewayAdapter ..|> CatalogoGateway
+  CatalogoGatewayAdapter ..|> RestauranteInfoGateway
+  CatalogoGatewayAdapter ..> RestauranteRepository : import type
+  ClienteGatewayAdapter ..|> ClienteGateway
+  ClienteGatewayAdapter ..> ClienteRepository : import type
+  NotificacaoRestauranteHandler ..|> EventHandler
+  NotificacaoRestauranteHandler ..> RestauranteInfoGateway

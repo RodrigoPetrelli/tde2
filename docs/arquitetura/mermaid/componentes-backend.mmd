@@ -1,0 +1,64 @@
+---
+title: Diagrama de componentes - backend PedeJa
+---
+flowchart TB
+  cliente([Cliente HTTP])
+
+  subgraph main[main - composition root]
+    app[app.ts / server.ts]
+    container[container.ts]
+  end
+
+  subgraph sharedhttp[shared/http]
+    adapter[expressAdapter + errorHandler]
+  end
+
+  subgraph restaurantes[modulo restaurantes]
+    direction TB
+    r_feat[[features: cadastrar-restaurante, listar-restaurantes, adicionar-produto, listar-cardapio]]
+    r_inf[infrastructure: InMemoryRestauranteRepository]
+    r_dom[(domain: Restaurante, Produto, RestauranteRepository)]
+  end
+
+  subgraph clientes[modulo clientes]
+    direction TB
+    c_feat[[features: cadastrar-cliente]]
+    c_inf[infrastructure: InMemoryClienteRepository]
+    c_dom[(domain: Cliente, ClienteRepository)]
+  end
+
+  subgraph pedidos[modulo pedidos]
+    direction TB
+    p_feat[[features: criar, obter, listar-do-cliente, confirmar, cancelar]]
+    p_inf[infrastructure: InMemoryPedidoRepository, GatewayAdapters, NotificacaoRestauranteHandler]
+    p_ports{{application/ports: CatalogoGateway, ClienteGateway, RestauranteInfoGateway}}
+    p_dom[(domain: Pedido, ItemPedido, eventos, PedidoRepository)]
+  end
+
+  subgraph shared[shared - kernel]
+    s_inf[infrastructure: InMemoryEventBus, CryptoIdGenerator]
+    s_app{{application: UseCase, EventBus, IdGenerator}}
+    s_dom[(domain: Entity, AggregateRoot, Money, erros)]
+  end
+
+  cliente --> app
+  app --> adapter
+  app --> container
+  adapter --> r_feat & c_feat & p_feat
+  container -. instancia .-> r_inf & c_inf & p_inf & s_inf
+  container -. injeta .-> r_feat & c_feat & p_feat
+
+  r_feat --> r_dom
+  c_feat --> c_dom
+  p_feat --> p_dom
+  p_feat --> p_ports
+  r_feat & c_feat & p_feat --> s_app
+
+  r_inf -. implementa .-> r_dom
+  c_inf -. implementa .-> c_dom
+  p_inf -. implementa .-> p_dom
+  p_inf -. implementa .-> p_ports
+  p_inf -. import type .-> r_dom & c_dom
+  s_inf -. implementa .-> s_app
+
+  r_dom & c_dom & p_dom --> s_dom

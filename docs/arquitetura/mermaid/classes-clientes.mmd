@@ -1,0 +1,83 @@
+---
+title: Diagrama de classes - modulo clientes
+config:
+  layout: elk
+---
+classDiagram
+  direction TB
+
+  namespace clientes.features.cadastrar-cliente {
+    class CadastrarClienteController {
+      +handle(request HttpRequest) Promise~HttpResponse~
+    }
+    class CadastrarClienteUseCase {
+      +execute(input CadastrarClienteInput) Promise~ClienteDTO~
+    }
+    class CadastrarClienteInput {
+      <<interface>>
+      +nome?: unknown
+      +email?: unknown
+    }
+  }
+
+  namespace clientes.application {
+    class ClienteDTO {
+      <<interface>>
+      +id: string
+      +nome: string
+      +email: string
+      +criadoEm: string
+    }
+  }
+
+  namespace clientes.domain {
+    class Cliente {
+      +MENSAGEM_EMAIL_INVALIDO: string$
+      +nome: string
+      +email: string
+      +criadoEm: Date
+      +criar(props CriarClienteProps, agora Date)$ Cliente
+    }
+    class ClienteRepository {
+      <<interface>>
+      +salvar(cliente Cliente) Promise~void~
+      +buscarPorId(id string) Promise~Cliente | null~
+      +buscarPorEmail(email string) Promise~Cliente | null~
+    }
+  }
+
+  namespace clientes.infrastructure {
+    class InMemoryClienteRepository {
+      -clientes: Map~string, Cliente~
+      +salvar(cliente Cliente) Promise~void~
+      +buscarPorId(id string) Promise~Cliente | null~
+      +buscarPorEmail(email string) Promise~Cliente | null~
+    }
+  }
+
+  namespace shared {
+    class HttpController {
+      <<interface>>
+    }
+    class UseCase~I, O~ {
+      <<interface>>
+    }
+    class IdGenerator {
+      <<interface>>
+    }
+    class Entity {
+      <<abstract>>
+    }
+  }
+
+  CadastrarClienteController ..|> HttpController
+  CadastrarClienteController ..> UseCase : useCase
+  CadastrarClienteUseCase ..|> UseCase
+  CadastrarClienteUseCase ..> CadastrarClienteInput
+  CadastrarClienteUseCase ..> ClienteDTO
+  CadastrarClienteUseCase ..> ClienteRepository : clientes
+  CadastrarClienteUseCase ..> IdGenerator : ids
+  CadastrarClienteUseCase ..> Cliente : criar
+  Cliente --|> Entity
+  ClienteRepository ..> Cliente
+  InMemoryClienteRepository ..|> ClienteRepository

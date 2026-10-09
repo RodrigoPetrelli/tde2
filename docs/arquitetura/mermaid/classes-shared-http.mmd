@@ -1,0 +1,69 @@
+---
+title: Diagrama de classes - shared.http (adaptador HTTP / Express)
+config:
+  layout: elk
+---
+classDiagram
+  direction TB
+
+  namespace shared.http {
+    class HttpController {
+      <<interface>>
+      +handle(request HttpRequest) Promise~HttpResponse~
+    }
+    class HttpRequest {
+      <<interface>>
+      +params: Record~string, string~
+      +body: Record~string, unknown~
+    }
+    class HttpResponse {
+      <<interface>>
+      +statusCode: number
+      +body: unknown
+    }
+    class HttpRoute {
+      <<interface>>
+      +method: HttpMethod
+      +path: string
+      +controller: HttpController
+    }
+    class HttpMethod {
+      <<enumeration>>
+      get
+      post
+      put
+      patch
+      delete
+    }
+    class expressAdapter {
+      <<utility>>
+      +adaptarController(controller HttpController)$ RequestHandler
+      +montarRouter(rotas HttpRoute[])$ HttpRouter
+    }
+    class asyncHandler {
+      <<utility>>
+      +asyncHandler(fn)$ RequestHandler
+    }
+    class errorHandler {
+      <<utility>>
+      +errorHandler(err, req, res, next)$ void
+      +notFoundHandler(req, res)$ void
+    }
+  }
+
+  namespace shared.domain {
+    class ValidationError
+    class NotFoundError
+    class BusinessRuleError
+  }
+
+  HttpController ..> HttpRequest
+  HttpController ..> HttpResponse
+  HttpRoute --> HttpMethod
+  HttpRoute --> HttpController
+  expressAdapter ..> HttpRoute
+  expressAdapter ..> HttpController
+  expressAdapter ..> asyncHandler
+  errorHandler ..> ValidationError : 400
+  errorHandler ..> NotFoundError : 404
+  errorHandler ..> BusinessRuleError : 422

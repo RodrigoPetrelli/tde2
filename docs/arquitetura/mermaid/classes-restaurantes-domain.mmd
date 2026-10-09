@@ -1,0 +1,85 @@
+---
+title: Diagrama de classes - restaurantes (domain, application, infrastructure)
+config:
+  layout: elk
+---
+classDiagram
+  direction TB
+
+  namespace restaurantes.application {
+    class RestauranteDTO {
+      <<interface>>
+      +id: string
+      +nome: string
+      +categoria: string
+      +criadoEm: string
+    }
+    class ProdutoDTO {
+      <<interface>>
+      +id: string
+      +restauranteId: string
+      +nome: string
+      +precoCentavos: number
+      +disponivel: boolean
+      +criadoEm: string
+    }
+  }
+
+  namespace restaurantes.infrastructure {
+    class InMemoryRestauranteRepository {
+      -restaurantes: Map~string, Restaurante~
+      -produtos: Map~string, Produto~
+      +salvar(restaurante Restaurante) Promise~void~
+      +buscarPorId(id string) Promise~Restaurante | null~
+      +listarTodos() Promise~Restaurante[]~
+      +salvarProduto(produto Produto) Promise~void~
+      +listarProdutosDoRestaurante(restauranteId string) Promise~Produto[]~
+      +buscarProdutosPorIds(ids string[]) Promise~Produto[]~
+    }
+  }
+
+  namespace restaurantes.domain {
+    class RestauranteRepository {
+      <<interface>>
+      +salvar(restaurante Restaurante) Promise~void~
+      +buscarPorId(id string) Promise~Restaurante | null~
+      +listarTodos() Promise~Restaurante[]~
+      +salvarProduto(produto Produto) Promise~void~
+      +listarProdutosDoRestaurante(restauranteId string) Promise~Produto[]~
+      +buscarProdutosPorIds(ids string[]) Promise~Produto[]~
+    }
+    class Restaurante {
+      +nome: string
+      +categoria: string
+      +criadoEm: Date
+      +criar(props CriarRestauranteProps, agora Date)$ Restaurante
+    }
+    class Produto {
+      +MENSAGEM_PRECO_INVALIDO: string$
+      +restauranteId: string
+      +nome: string
+      +preco: Money
+      +disponivel: boolean
+      +criadoEm: Date
+      +criar(props CriarProdutoProps, agora Date)$ Produto
+      +pertenceAo(restauranteId string) boolean
+    }
+  }
+
+  namespace shared.domain {
+    class Entity {
+      <<abstract>>
+    }
+    class Money {
+      <<value object>>
+    }
+  }
+
+  InMemoryRestauranteRepository ..|> RestauranteRepository
+  RestauranteRepository ..> Restaurante
+  RestauranteRepository ..> Produto
+  RestauranteDTO ..> Restaurante : paraRestauranteDTO
+  ProdutoDTO ..> Produto : paraProdutoDTO
+  Restaurante --|> Entity
+  Produto --|> Entity
+  Produto --> "1" Money : preco

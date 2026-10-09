@@ -1,0 +1,56 @@
+---
+title: Diagrama de classes - shared.domain
+config:
+  layout: elk
+---
+classDiagram
+  direction TB
+
+  namespace shared.domain {
+    class Entity {
+      <<abstract>>
+      +id: string
+      #Entity(id string)
+      +equals(outra Entity) boolean
+    }
+    class AggregateRoot {
+      <<abstract>>
+      -eventosPendentes: DomainEvent[]
+      #registrarEvento(evento DomainEvent) void
+      +puxarEventos() DomainEvent[]
+    }
+    class DomainEvent {
+      <<interface>>
+      +nome: string
+      +ocorridoEm: Date
+    }
+    class Money {
+      <<value object>>
+      +centavos: number
+      +deCentavos(centavos number)$ Money
+      +zero()$ Money
+      +somar(outro Money) Money
+      +multiplicar(fator number) Money
+      +ehPositivo() boolean
+      +equals(outro Money) boolean
+    }
+    class DomainError {
+      <<abstract>>
+      #DomainError(message string)
+    }
+    class ValidationError
+    class NotFoundError
+    class BusinessRuleError
+  }
+
+  class Error {
+    <<built-in>>
+  }
+
+  AggregateRoot --|> Entity
+  AggregateRoot o-- "0..*" DomainEvent : eventosPendentes
+  Money ..> ValidationError : lanca
+  ValidationError --|> DomainError
+  NotFoundError --|> DomainError
+  BusinessRuleError --|> DomainError
+  DomainError --|> Error

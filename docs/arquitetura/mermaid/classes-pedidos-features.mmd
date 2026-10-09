@@ -1,0 +1,98 @@
+---
+title: Diagrama de classes - modulo pedidos (fatias verticais)
+config:
+  layout: elk
+---
+classDiagram
+  direction TB
+
+  namespace features.criar-pedido {
+    class CriarPedidoController {
+      +handle(request HttpRequest) Promise~HttpResponse~
+    }
+    class CriarPedidoUseCase {
+      +execute(input CriarPedidoInput) Promise~PedidoDTO~
+    }
+  }
+  namespace features.obter-pedido {
+    class ObterPedidoController
+    class ObterPedidoUseCase {
+      +execute(input ObterPedidoInput) Promise~PedidoDTO~
+    }
+  }
+  namespace features.listar-pedidos-do-cliente {
+    class ListarPedidosDoClienteController
+    class ListarPedidosDoClienteUseCase {
+      +execute(input ListarPedidosDoClienteInput) Promise~PedidoDTO[]~
+    }
+  }
+  namespace features.confirmar-pedido {
+    class ConfirmarPedidoController
+    class ConfirmarPedidoUseCase {
+      +execute(input ConfirmarPedidoInput) Promise~PedidoDTO~
+    }
+  }
+  namespace features.cancelar-pedido {
+    class CancelarPedidoController
+    class CancelarPedidoUseCase {
+      +execute(input CancelarPedidoInput) Promise~PedidoDTO~
+    }
+  }
+
+  namespace portas {
+    class UseCase~I, O~ {
+      <<interface>>
+      +execute(input I) Promise~O~
+    }
+    class HttpController {
+      <<interface>>
+      +handle(request HttpRequest) Promise~HttpResponse~
+    }
+    class PedidoRepository {
+      <<interface>>
+    }
+    class CatalogoGateway {
+      <<interface>>
+    }
+    class ClienteGateway {
+      <<interface>>
+    }
+    class EventPublisher {
+      <<interface>>
+      +publicar(eventos DomainEvent[]) Promise~void~
+    }
+    class IdGenerator {
+      <<interface>>
+      +gerar() string
+    }
+  }
+
+  CriarPedidoController ..|> HttpController
+  ObterPedidoController ..|> HttpController
+  ListarPedidosDoClienteController ..|> HttpController
+  ConfirmarPedidoController ..|> HttpController
+  CancelarPedidoController ..|> HttpController
+  CriarPedidoController ..> UseCase
+  ObterPedidoController ..> UseCase
+  ListarPedidosDoClienteController ..> UseCase
+  ConfirmarPedidoController ..> UseCase
+  CancelarPedidoController ..> UseCase
+
+  CriarPedidoUseCase ..|> UseCase
+  ObterPedidoUseCase ..|> UseCase
+  ListarPedidosDoClienteUseCase ..|> UseCase
+  ConfirmarPedidoUseCase ..|> UseCase
+  CancelarPedidoUseCase ..|> UseCase
+
+  CriarPedidoUseCase ..> PedidoRepository
+  CriarPedidoUseCase ..> CatalogoGateway
+  CriarPedidoUseCase ..> ClienteGateway
+  CriarPedidoUseCase ..> IdGenerator
+  CriarPedidoUseCase ..> EventPublisher
+  ObterPedidoUseCase ..> PedidoRepository
+  ListarPedidosDoClienteUseCase ..> PedidoRepository
+  ListarPedidosDoClienteUseCase ..> ClienteGateway
+  ConfirmarPedidoUseCase ..> PedidoRepository
+  ConfirmarPedidoUseCase ..> EventPublisher
+  CancelarPedidoUseCase ..> PedidoRepository
+  CancelarPedidoUseCase ..> EventPublisher
