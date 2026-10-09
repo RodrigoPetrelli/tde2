@@ -1,5 +1,7 @@
 import request from 'supertest';
-import { app } from '../src/app';
+import { createApp } from '../../src/main/app';
+
+const app = createApp();
 
 describe('Fluxo de pedidos', () => {
   it('cria restaurante, produto, cliente, pedido e cancela o pedido', async () => {
