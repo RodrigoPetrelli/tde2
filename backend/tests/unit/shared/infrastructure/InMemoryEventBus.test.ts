@@ -1,5 +1,5 @@
-import { DomainEvent } from '../../src/shared/domain/DomainEvent';
-import { InMemoryEventBus } from '../../src/shared/infrastructure/InMemoryEventBus';
+import { DomainEvent } from '../../../../src/shared/domain/DomainEvent';
+import { InMemoryEventBus } from '../../../../src/shared/infrastructure/InMemoryEventBus';
 
 const evento = (nome: string): DomainEvent => ({ nome, ocorridoEm: new Date() });
 
